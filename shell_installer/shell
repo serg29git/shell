@@ -1,63 +1,50 @@
 #!/bin/sh
-# shell - displays current shell information
+# shell - show current shell name
+# Usage: shell [-v|--verbose]
 
-# Get process name via ps
-ps_output=$(ps -p $$ -o comm= 2>&1)
-
-# Handle fish shell error
-if echo "$ps_output" | grep -q "fish: $$ is not the pid"; then
-    shell_name="fish"
-    shell_pid="$fish_pid"
+# Determine shell by version variables
+if [ -n "$FISH_VERSION" ]; then
+    shell="fish"
+elif [ -n "$BASH_VERSION" ]; then
+    shell="bash"
+elif [ -n "$ZSH_VERSION" ]; then
+    shell="zsh"
+elif [ -n "$KSH_VERSION" ]; then
+    shell="ksh"
+elif [ -n "$YASH_VERSION" ]; then
+    shell="yash"
 else
-    shell_cmd=$(echo "$ps_output" | head -n1)
-    # If ps returned script name (shell or whereami), determine via $SHELL
-    if echo "$shell_cmd" | grep -qE "shell|whereami"; then
-        if [ -n "$BASH_VERSION" ]; then
-            shell_name="bash"
-        elif [ -n "$ZSH_VERSION" ]; then
-            shell_name="zsh"
-        elif [ -n "$FISH_VERSION" ]; then
-            shell_name="fish"
-        elif [ -n "$KSH_VERSION" ]; then
-            shell_name="ksh"
-        elif [ -n "$YASH_VERSION" ]; then
-            shell_name="yash"
-        else
-            # fallback: basename from $SHELL
-            shell_name=$(basename "$SHELL" 2>/dev/null || echo "unknown")
-        fi
+    # Fallback to basename of $SHELL or ps
+    if [ -n "$SHELL" ]; then
+        shell=$(basename "$SHELL")
     else
-        shell_name="$shell_cmd"
+        shell=$(ps -p $$ -o comm= 2>/dev/null | head -n1)
     fi
-    shell_pid=$$
 fi
 
-# Output
-echo "Shell: $shell_name"
-
-# Version
-case "$shell_name" in
-    bash)   [ -n "$BASH_VERSION" ] && echo "Version: $BASH_VERSION" ;;
-    zsh)    [ -n "$ZSH_VERSION" ] && echo "Version: $ZSH_VERSION" ;;
-    fish)   [ -n "$FISH_VERSION" ] && echo "Version: $FISH_VERSION" ;;
-    ksh)    [ -n "$KSH_VERSION" ] && echo "Version: $KSH_VERSION" ;;
-    yash)   [ -n "$YASH_VERSION" ] && echo "Version: $YASH_VERSION" ;;
-esac
-
-echo "PID: $shell_pid"
-
-# Executable path
-if [ -L "/proc/$$/exe" ]; then
-    exe_path=$(readlink -f "/proc/$$/exe" 2>/dev/null)
-    [ -n "$exe_path" ] && echo "Executable: $exe_path"
+# If verbose, show full info
+if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
+    echo "Shell: $shell"
+    case "$shell" in
+        fish)   [ -n "$FISH_VERSION" ] && echo "Version: $FISH_VERSION" ;;
+        bash)   [ -n "$BASH_VERSION" ] && echo "Version: $BASH_VERSION" ;;
+        zsh)    [ -n "$ZSH_VERSION" ] && echo "Version: $ZSH_VERSION" ;;
+        ksh)    [ -n "$KSH_VERSION" ] && echo "Version: $KSH_VERSION" ;;
+        yash)   [ -n "$YASH_VERSION" ] && echo "Version: $YASH_VERSION" ;;
+    esac
+    echo "PID: $$"
+    if [ -L "/proc/$$/exe" ]; then
+        exe=$(readlink -f "/proc/$$/exe" 2>/dev/null)
+        [ -n "$exe" ] && echo "Executable: $exe"
+    else
+        exe=$(ps -p $$ -o args= 2>/dev/null | awk '{print $1}')
+        [ -n "$exe" ] && echo "Command: $exe"
+    fi
+    if history 2>/dev/null | tail -n 10 >/dev/null 2>&1; then
+        echo "History: available"
+    else
+        echo "History: not supported"
+    fi
 else
-    exe_path=$(ps -p "$shell_pid" -o args= 2>/dev/null | awk '{print $1}')
-    [ -n "$exe_path" ] && echo "Command: $exe_path"
-fi
-
-# History availability
-if history 2>/dev/null | tail -n 10 >/dev/null 2>&1; then
-    echo "History: available"
-else
-    echo "History: not supported"
+    echo "$shell"
 fi
