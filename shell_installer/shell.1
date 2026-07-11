@@ -1,50 +1,29 @@
-#!/bin/sh
-# shell - show current shell name
-# Usage: shell [-v|--verbose]
-
-# Determine shell by version variables
-if [ -n "$FISH_VERSION" ]; then
-    shell="fish"
-elif [ -n "$BASH_VERSION" ]; then
-    shell="bash"
-elif [ -n "$ZSH_VERSION" ]; then
-    shell="zsh"
-elif [ -n "$KSH_VERSION" ]; then
-    shell="ksh"
-elif [ -n "$YASH_VERSION" ]; then
-    shell="yash"
-else
-    # Fallback to basename of $SHELL or ps
-    if [ -n "$SHELL" ]; then
-        shell=$(basename "$SHELL")
-    else
-        shell=$(ps -p $$ -o comm= 2>/dev/null | head -n1)
-    fi
-fi
-
-# If verbose, show full info
-if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
-    echo "Shell: $shell"
-    case "$shell" in
-        fish)   [ -n "$FISH_VERSION" ] && echo "Version: $FISH_VERSION" ;;
-        bash)   [ -n "$BASH_VERSION" ] && echo "Version: $BASH_VERSION" ;;
-        zsh)    [ -n "$ZSH_VERSION" ] && echo "Version: $ZSH_VERSION" ;;
-        ksh)    [ -n "$KSH_VERSION" ] && echo "Version: $KSH_VERSION" ;;
-        yash)   [ -n "$YASH_VERSION" ] && echo "Version: $YASH_VERSION" ;;
-    esac
-    echo "PID: $$"
-    if [ -L "/proc/$$/exe" ]; then
-        exe=$(readlink -f "/proc/$$/exe" 2>/dev/null)
-        [ -n "$exe" ] && echo "Executable: $exe"
-    else
-        exe=$(ps -p $$ -o args= 2>/dev/null | awk '{print $1}')
-        [ -n "$exe" ] && echo "Command: $exe"
-    fi
-    if history 2>/dev/null | tail -n 10 >/dev/null 2>&1; then
-        echo "History: available"
-    else
-        echo "History: not supported"
-    fi
-else
-    echo "$shell"
-fi
+.\" shell.1 - manual page for shell
+.TH SHELL 1 "July 2026" "1.0" "User Commands"
+.SH NAME
+shell \- show current shell name
+.SH SYNOPSIS
+.B shell [OPTION]
+.SH OPTIONS
+.TP
+.B -v, --verbose
+Show detailed information (shell, version, PID, executable, history)
+.SH DESCRIPTION
+.B shell
+prints the name of the current interactive shell (bash, zsh, fish, etc.).
+With -v, it also shows version, process ID, executable path, and history availability.
+.SH EXAMPLES
+.TP
+.B shell
+bash
+.TP
+.B shell -v
+Shell: bash
+Version: 5.2.15(1)-release
+PID: 12345
+Executable: /usr/bin/bash
+History: available
+.SH AUTHOR
+Written by Serg
+.SH SEE ALSO
+.BR echo (1), ps (1)
