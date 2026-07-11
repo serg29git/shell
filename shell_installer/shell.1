@@ -1,0 +1,47 @@
+.\" shell.1 - manual page for shell
+.TH SHELL 1 "July 2026" "1.0" "User Commands"
+.SH NAME
+shell \- determine current shell and its properties
+.SH SYNOPSIS
+.B shell
+.SH DESCRIPTION
+.B shell
+displays information about the current shell environment.
+It detects the shell name, version, process ID, executable path,
+and history availability.
+.PP
+The detection works for:
+.B bash, zsh, fish, ksh, dash, sh, ash, tcsh, csh, yash
+and other shells that appear in the process list.
+.SH OUTPUT
+.TP 12
+.B Shell
+The name of the current shell (e.g., bash, zsh, fish).
+.TP
+.B Version
+Shell version if available.
+.TP
+.B PID
+Process ID of the shell.
+.TP
+.B Executable
+Path to the shell executable (if accessible).
+.TP
+.B History
+Whether history commands (fc/history) are available.
+.SH EXAMPLES
+.TP
+.B shell
+Shell: bash
+Version: 5.2.15(1)-release
+PID: 12345
+Executable: /usr/bin/bash
+History: available
+.SH NOTES
+For fish shell, the script uses
+.B $fish_pid
+instead of $$ to correctly detect the process.
+.SH AUTHOR
+Written by Serg (serg@serg-X540UA)
+.SH SEE ALSO
+.BR echo (1), ps (1), basename (1)
