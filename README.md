@@ -1,5 +1,5 @@
-whereami - know your shell (if you havent already)
+shell - know your shell. 
 
-has an intercative installer
-says your shell in one word
-kinda uselss if you thing about it
+comes with an installer
+
+nothing else to write sorry
