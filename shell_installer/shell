@@ -2,7 +2,7 @@
 # shell - show current shell name
 # Usage: shell [-v|--verbose]
 
-# Determine shell by version variables
+# Determine shell by version variables (most reliable)
 if [ -n "$FISH_VERSION" ]; then
     shell="fish"
 elif [ -n "$BASH_VERSION" ]; then
@@ -14,17 +14,18 @@ elif [ -n "$KSH_VERSION" ]; then
 elif [ -n "$YASH_VERSION" ]; then
     shell="yash"
 else
-    # Fallback to basename of $SHELL or ps
+    # Fallback to basename of SHELL
     if [ -n "$SHELL" ]; then
         shell=$(basename "$SHELL")
     else
-        shell=$(ps -p $$ -o comm= 2>/dev/null | head -n1)
+        shell="unknown"
     fi
 fi
 
 # If verbose, show full info
 if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
     echo "Shell: $shell"
+    # Version
     case "$shell" in
         fish)   [ -n "$FISH_VERSION" ] && echo "Version: $FISH_VERSION" ;;
         bash)   [ -n "$BASH_VERSION" ] && echo "Version: $BASH_VERSION" ;;
@@ -33,6 +34,7 @@ if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
         yash)   [ -n "$YASH_VERSION" ] && echo "Version: $YASH_VERSION" ;;
     esac
     echo "PID: $$"
+    # Executable path
     if [ -L "/proc/$$/exe" ]; then
         exe=$(readlink -f "/proc/$$/exe" 2>/dev/null)
         [ -n "$exe" ] && echo "Executable: $exe"
@@ -40,6 +42,7 @@ if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
         exe=$(ps -p $$ -o args= 2>/dev/null | awk '{print $1}')
         [ -n "$exe" ] && echo "Command: $exe"
     fi
+    # History availability
     if history 2>/dev/null | tail -n 10 >/dev/null 2>&1; then
         echo "History: available"
     else
