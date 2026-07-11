@@ -1,0 +1,45 @@
+.TH WHEREAMI 1 "July 2026" "whereami 1.0" "User Commands"
+.SH NAME
+whereami \- determine the current shell environment
+.SH SYNOPSIS
+.B whereami
+.SH DESCRIPTION
+.B whereami
+displays information about the current shell session, including the
+shell name, version, process ID, executable path, and whether the shell
+is interactive and supports command history.
+.PP
+It supports a wide range of shells: bash, zsh, fish, ksh, dash, ash, sh,
+tcsh, csh, yash, and others. It uses multiple detection methods:
+.PP
+.RS
+.IP \(bu 2
+Checking shell-specific environment variables
+.IP \(bu
+Examining the /proc/$$/exe symlink (on Linux)
+.IP \(bu
+Using the ps command to inspect the process tree
+.IP \(bu
+Falling back to the basename of $0
+.IP \(bu
+Looking at the parent process if all else fails
+.RE
+.PP
+The output is plain text, suitable for scripts and debugging.
+.SH EXAMPLES
+.nf
+$ whereami
+Shell: fish
+Version: 3.6.0
+PID: 12345
+Executable: /usr/bin/fish
+Interactive: yes
+History: available
+.fi
+.SH BUGS
+Please report bugs to the GitHub repository:
+<https://github.com/your_username/whereami>
+.SH AUTHOR
+Written by your_name <your_email>
+.SH LICENSE
+MIT
