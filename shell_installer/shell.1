@@ -1,47 +1,50 @@
-.\" shell.1 - manual page for shell
-.TH SHELL 1 "July 2026" "1.0" "User Commands"
-.SH NAME
-shell \- determine current shell and its properties
-.SH SYNOPSIS
-.B shell
-.SH DESCRIPTION
-.B shell
-displays information about the current shell environment.
-It detects the shell name, version, process ID, executable path,
-and history availability.
-.PP
-The detection works for:
-.B bash, zsh, fish, ksh, dash, sh, ash, tcsh, csh, yash
-and other shells that appear in the process list.
-.SH OUTPUT
-.TP 12
-.B Shell
-The name of the current shell (e.g., bash, zsh, fish).
-.TP
-.B Version
-Shell version if available.
-.TP
-.B PID
-Process ID of the shell.
-.TP
-.B Executable
-Path to the shell executable (if accessible).
-.TP
-.B History
-Whether history commands (fc/history) are available.
-.SH EXAMPLES
-.TP
-.B shell
-Shell: bash
-Version: 5.2.15(1)-release
-PID: 12345
-Executable: /usr/bin/bash
-History: available
-.SH NOTES
-For fish shell, the script uses
-.B $fish_pid
-instead of $$ to correctly detect the process.
-.SH AUTHOR
-Written by Serg (serg@serg-X540UA)
-.SH SEE ALSO
-.BR echo (1), ps (1), basename (1)
+#!/bin/sh
+# shell - show current shell name
+# Usage: shell [-v|--verbose]
+
+# Determine shell by version variables
+if [ -n "$FISH_VERSION" ]; then
+    shell="fish"
+elif [ -n "$BASH_VERSION" ]; then
+    shell="bash"
+elif [ -n "$ZSH_VERSION" ]; then
+    shell="zsh"
+elif [ -n "$KSH_VERSION" ]; then
+    shell="ksh"
+elif [ -n "$YASH_VERSION" ]; then
+    shell="yash"
+else
+    # Fallback to basename of $SHELL or ps
+    if [ -n "$SHELL" ]; then
+        shell=$(basename "$SHELL")
+    else
+        shell=$(ps -p $$ -o comm= 2>/dev/null | head -n1)
+    fi
+fi
+
+# If verbose, show full info
+if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
+    echo "Shell: $shell"
+    case "$shell" in
+        fish)   [ -n "$FISH_VERSION" ] && echo "Version: $FISH_VERSION" ;;
+        bash)   [ -n "$BASH_VERSION" ] && echo "Version: $BASH_VERSION" ;;
+        zsh)    [ -n "$ZSH_VERSION" ] && echo "Version: $ZSH_VERSION" ;;
+        ksh)    [ -n "$KSH_VERSION" ] && echo "Version: $KSH_VERSION" ;;
+        yash)   [ -n "$YASH_VERSION" ] && echo "Version: $YASH_VERSION" ;;
+    esac
+    echo "PID: $$"
+    if [ -L "/proc/$$/exe" ]; then
+        exe=$(readlink -f "/proc/$$/exe" 2>/dev/null)
+        [ -n "$exe" ] && echo "Executable: $exe"
+    else
+        exe=$(ps -p $$ -o args= 2>/dev/null | awk '{print $1}')
+        [ -n "$exe" ] && echo "Command: $exe"
+    fi
+    if history 2>/dev/null | tail -n 10 >/dev/null 2>&1; then
+        echo "History: available"
+    else
+        echo "History: not supported"
+    fi
+else
+    echo "$shell"
+fi
