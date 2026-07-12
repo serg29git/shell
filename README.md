@@ -1,5 +1,7 @@
 shell - know your shell. 
 
+(thanks to everyone who downloaded and tried out this program yall)
+(пасиба всем кто скачал и опробовл эту штуку люди)
 (EN, RU)
 
 ------------------------------------------------------------------------------------------
