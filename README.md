@@ -1,7 +1,7 @@
 shell - know your shell. 
 
 (thanks to everyone who downloaded and tried out this program yall)
-(пасиба всем кто скачал и опробовл эту штуку люди)
+(пасиба всем кто скачал и опробовал эту штуку люди)
 (EN, RU)
 
 ------------------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ alternative languages (C, Go, Rust) appreciated
 RU
 
 установка:
-1. если shell-installer.sh говорит "Permission Denied' когда его весрубаешь:
+1. если shell-installer.sh говорит "Permission Denied' когда его врубаешь:
 chmod +x /там/где/shell/штука/*
 
 2. первая штука в shell-installer которая появляется после скачивания (test shell) может не сработать :
