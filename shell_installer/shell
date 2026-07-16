@@ -1,8 +1,8 @@
 #!/bin/sh
-# shell - universal shell detector
+# shell - show current shell info
 # Usage: shell [-v|--verbose]
 
-# Determine shell by version variables (priority)
+# --- get shell ---
 if [ -n "$FISH_VERSION" ]; then
     shell="fish"
 elif [ -n "$BASH_VERSION" ]; then
@@ -14,45 +14,57 @@ elif [ -n "$KSH_VERSION" ]; then
 elif [ -n "$YASH_VERSION" ]; then
     shell="yash"
 else
-    # Fallback: try to get shell name from parent process
-    # (works for dash, sh, tcsh, csh, ash, etc.)
-    ppid=$PPID
-    parent_cmd=$(ps -p "$ppid" -o comm= 2>/dev/null | head -n1)
-    if [ -n "$parent_cmd" ]; then
-        shell="$parent_cmd"
+    if [ -n "$SHELL" ]; then
+        shell=$(basename "$SHELL")
     else
-        # Last resort: basename of SHELL
-        if [ -n "$SHELL" ]; then
-            shell=$(basename "$SHELL")
-        else
-            shell="unknown"
-        fi
+        shell="unknown"
     fi
 fi
 
-# If verbose, show full info
+# --- get shell version ---
+get_version() {
+    case "$1" in
+        fish)   echo "$FISH_VERSION" ;;
+        bash)   echo "$BASH_VERSION" ;;
+        zsh)    echo "$ZSH_VERSION" ;;
+        ksh)    echo "$KSH_VERSION" ;;
+        yash)   echo "$YASH_VERSION" ;;
+        *)
+            # Пробуем через --version
+            if command -v "$1" >/dev/null 2>&1; then
+                "$1" --version 2>/dev/null | head -n1 | sed 's/^.*version //; s/ .*//'
+            else
+                echo "unknown"
+            fi
+            ;;
+    esac
+}
+
+# --- check uptime ---
+get_uptime() {
+    ps -p $$ -o etime= 2>/dev/null | sed 's/^ //'
+}
+
+# --- check user ---
+get_user() {
+    whoami 2>/dev/null || id -un 2>/dev/null || echo "unknown"
+}
+
+# --- output ---
 if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
     echo "Shell: $shell"
-    # Version
-    case "$shell" in
-        fish)   [ -n "$FISH_VERSION" ] && echo "Version: $FISH_VERSION" ;;
-        bash)   [ -n "$BASH_VERSION" ] && echo "Version: $BASH_VERSION" ;;
-        zsh)    [ -n "$ZSH_VERSION" ] && echo "Version: $ZSH_VERSION" ;;
-        ksh)    [ -n "$KSH_VERSION" ] && echo "Version: $KSH_VERSION" ;;
-        yash)   [ -n "$YASH_VERSION" ] && echo "Version: $YASH_VERSION" ;;
-    esac
+    version=$(get_version "$shell")
+    [ -n "$version" ] && echo "Version: $version"
     echo "PID: $$"
-    # Executable path (real shell executable)
-    case "$shell" in
-        fish)   exe=$(command -v fish 2>/dev/null || which fish 2>/dev/null) ;;
-        bash)   exe=$(command -v bash 2>/dev/null || which bash 2>/dev/null) ;;
-        zsh)    exe=$(command -v zsh 2>/dev/null || which zsh 2>/dev/null) ;;
-        ksh)    exe=$(command -v ksh 2>/dev/null || which ksh 2>/dev/null) ;;
-        yash)   exe=$(command -v yash 2>/dev/null || which yash 2>/dev/null) ;;
-        *)      exe=$(command -v "$shell" 2>/dev/null || which "$shell" 2>/dev/null) ;;
-    esac
-    [ -n "$exe" ] && echo "Executable: $exe"
-    # History availability
+    echo "User: $(get_user)"
+    echo "Uptime: $(get_uptime)"
+    if [ -L "/proc/$$/exe" ]; then
+        exe=$(readlink -f "/proc/$$/exe" 2>/dev/null)
+        [ -n "$exe" ] && echo "Executable: $exe"
+    else
+        exe=$(ps -p $$ -o args= 2>/dev/null | awk '{print $1}')
+        [ -n "$exe" ] && echo "Command: $exe"
+    fi
     if history 2>/dev/null | tail -n 10 >/dev/null 2>&1; then
         echo "History: available"
     else
